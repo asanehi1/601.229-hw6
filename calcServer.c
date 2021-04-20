@@ -3,8 +3,14 @@
 #include <stdlib.h>
 #include "csapp.h"
 #include "calc.h"
+#include <pthread.h>
 
 #define LINEBUF_SIZE 1024
+
+struct ConnInfo {
+	int clientfd;
+	struct Calc *calc;
+};
 
 int chat_with_client(struct Calc *calc, int infd, int outfd) {
 	rio_t in;
@@ -49,30 +55,45 @@ int chat_with_client(struct Calc *calc, int infd, int outfd) {
 	return done;
 }
 
+void *worker(void *arg) {
+	struct ConnInfo *info = arg;
+
+	pthread_detach(pthread_self());
+
+	chat_with_client(info->calc ,info->clientfd, info->clientfd);
+	close(info->clientfd);
+	free(info);
+
+	return NULL;
+}
+
 
 int main(int argc, char **argv) {
 	/* TODO: implement this program */
 	if (argc != 2) {
-    	printf("Usage: ./server <port>");
+    	printf("Usage: ./server <port>\n");
 		return 1;
   	}
 	  
 	char* port = argv[1];
 	int socket = Open_listenfd(port);
-
 	struct Calc *calc = calc_create();
 
 	int n = 1;
 
-	while(n) {
+	while(1) {
 		int client = Accept(socket, NULL, NULL);
-		n = chat_with_client(calc, client, client);
-		Close(client);
 
-		if(n == 2) {
-			calc_destroy(calc);
-			return 0;
+		struct ConnInfo *info = malloc(sizeof(struct ConnInfo));
+		info->clientfd = client;
+		info->calc = calc;
+
+		pthread_t thr_id;
+		if (pthread_create(&thr_id, NULL, worker, info) != 0) {
+			printf("pthread_create failed\n");
+			return 1;
 		}
+
 	}
 
 	calc_destroy(calc);
