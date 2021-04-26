@@ -1,0 +1,9 @@
+# 601.229-hw5
+
+Alexis Sanehisa (asanehi1@jhu.edu) contribution:
+calc.cpp
+
+Maudeline Deus (mdeus1@jhu.edu) Contribution:
+calcServer.c
+
+briefly describe how you made the calculator instance’s shared data safe to access from multiple threads. Indicate what kind of synchronization object you used, and how you determined which regions of code were critical sections:
