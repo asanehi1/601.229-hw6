@@ -79,8 +79,6 @@ int main(int argc, char **argv) {
 	int socket = Open_listenfd(port);
 	struct Calc *calc = calc_create();
 
-	int n = 1;
-
 	while(1) {
 		int client = Accept(socket, NULL, NULL);
 

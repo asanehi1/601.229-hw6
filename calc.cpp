@@ -11,6 +11,7 @@ struct Calc {
 private:
   //fields
   std::map<std::string, int> variables;
+  pthread_mutex_t lock;
   
 private:
     // private member functions
@@ -35,7 +36,9 @@ private:
       if (str.c_str()[0] == '-') {
         digit++;
       }
-      for (int i = 0; i < str.length(); i++) {
+
+      unsigned length = str.length();
+      for (unsigned i = 0; i < length; i++) {
         if (std::isalnum(str.c_str()[i]) == 0 && str.c_str()[0] != '-') {
           return 0;
         }
@@ -46,9 +49,10 @@ private:
           digit++;
         }
       }
-      if (alpha == str.length()) {
+
+      if (alpha == length) {
         return 1;
-      } else if (digit >=  str.length()) {
+      } else if (digit >= length) {
         return 2;
       }
       return 3;
@@ -77,12 +81,10 @@ private:
       int A = 0;
       int B = 0;
       // if alpha + in map
-
-
+      
       if (isAlphaNum(a) == 1 && variables.find(a) != variables.end()) {
         A = variables.at(a);
       } else if (isAlphaNum(a) == 2) {
-
         A = std::stoi(a);
       }
       
@@ -111,9 +113,22 @@ private:
 
 public:
   // public member functions                                                  
-  Calc() {}
-  ~Calc() {variables.clear();}
+  Calc() {
+    pthread_mutex_init(&this->lock, NULL);
+  }
 
+  ~Calc() {
+    variables.clear(); 
+    pthread_mutex_destroy(&this->lock);
+  }
+
+  void unlock() {
+    pthread_mutex_unlock(&this->lock);
+  }
+
+  void lock_() {
+    pthread_mutex_lock(&this->lock);
+  }
 
   // return 1 if success                                                        
   // return 0 is fail                                                           
@@ -166,25 +181,26 @@ public:
         } else {
           variables.at(str.at(0)) = result;
         }
+          
         return 1;
       }
-      
     }
     return 0;
   }
 };
 
 
-
-
 extern "C" struct Calc *calc_create(void) {
-    return new Calc();
+  return new Calc;;
 }
 
 extern "C" void calc_destroy(struct Calc *calc) {
-    delete calc;
+  delete calc;
 }
 
 extern "C" int calc_eval(struct Calc *calc, const char *expr, int *result) {
-    return calc->evalExpr(expr, *result);
+  calc->lock_();
+  int val = calc->evalExpr(expr, *result);
+  calc->unlock();
+  return val;
 }
