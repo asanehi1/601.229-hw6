@@ -83,15 +83,21 @@ private:
       // if alpha + in map
       
       if (isAlphaNum(a) == 1 && variables.find(a) != variables.end()) {
-        A = variables.at(a);
+	// if var is in variables
+	A = variables.at(a);
       } else if (isAlphaNum(a) == 2) {
         A = std::stoi(a);
+      } else {
+	return 0;
       }
       
       if (isAlphaNum(b) == 1 && variables.find(b) != variables.end()) {
-        B	= variables.at(b);
+	// if var is in variables
+	B = variables.at(b);
       } else if (isAlphaNum(b) == 2) {
         B = std::stoi(b);
+      } else {
+	return 0;
       }
 
 
